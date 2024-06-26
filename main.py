@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 
 IMAGE_SIZE = 784  # 28x28 images
-HIDDEN_LAYER_1_SIZE = 532 # Adjust these through empirical testing
+HIDDEN_LAYER_1_SIZE = 10 # Adjust these through empirical testing
 HIDDEN_LAYER_2_SIZE = 532 # Adjust these through empirical testing
 NUM_CLASSES = 10
 
@@ -24,9 +24,9 @@ X_train = X_train / 255.0
 _,m_train = X_train.shape
 
 def init_params():
-    W1 = np.random.randn(NUM_CLASSES, NUM_FEATURES) * 0.01
-    b1 = np.zeros((NUM_CLASSES, 1))
-    W2 = np.random.randn(NUM_CLASSES, NUM_CLASSES) * 0.01
+    W1 = np.random.randn(HIDDEN_LAYER_1_SIZE, IMAGE_SIZE) * 0.01
+    b1 = np.zeros((HIDDEN_LAYER_1_SIZE, 1))
+    W2 = np.random.randn(NUM_CLASSES, HIDDEN_LAYER_1_SIZE) * 0.01
     b2 = np.zeros((NUM_CLASSES, 1))
     return W1, b1, W2, b2
 
@@ -108,7 +108,7 @@ def make_predictions(X, W1, b1, W2, b2):
 
 
 def test_prediction(index, W1, b1, W2, b2):
-    current_image = X_train[:, index].reshape(NUM_FEATURES, 1)
+    current_image = X_train[:, index].reshape(IMAGE_SIZE, 1)
     prediction = make_predictions(current_image, W1, b1, W2, b2)
     label = Y_train[index]
     print(f"Prediction: {prediction[0]}, Label: {label}")
