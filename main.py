@@ -4,44 +4,50 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 INPUT_SIZE = 784  # 28x28 images
-HIDDEN_LAYER_1_SIZE = 55
-HIDDEN_LAYER_2_SIZE = 35
+HIDDEN_LAYER_1_SIZE = 312
+HIDDEN_LAYER_2_SIZE = 55
 OUTPUT_CLASSES = 10
 IMAGE_SHAPE = (28, 28)
-NUM_ITERATIONS = 10000
+NUM_ITERATIONS = 50000
 INITIAL_LEARNING_RATE = 0.1
 DROPOUT_RATE = 0.25
-DECAY_RATE = 0.00045
+DECAY_RATE = 0.0001
 
 DATASET_IN_USE = "Handwritten Digits"
+ENABLE_DROPOUT = False
 
 # True - Trains Model | False - Loads existing parameters and tests model
-train_model = True
+train_model = False
+resume_autosave_state = False # Set to True to resume from a saved state
 
-
+labels = []
+param_dir = ""
+data = pd.DataFrame()
+# Datasets, Paths, and Labels
 if DATASET_IN_USE == "Handwritten Digits":
     labels = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+    param_dir = "digit_params"
+    data = pd.read_csv('data/train.csv')
 elif DATASET_IN_USE == "Fashion":
     labels = ["T-shirt", "Pants", "Sweatshirt", "Dress", "Coat",
                 "Sandal", "Shirt", "Sneaker", "Bag", "Boot"]
-
-
-if DATASET_IN_USE == "Handwritten Digits":
-    data = pd.read_csv('data/train.csv')
-elif DATASET_IN_USE == "Fashion":
+    param_dir = "fashion_params"
     data = pd.read_csv('data_fashion/fashion-mnist_train.csv')
+
+
+generalized_accuracy_filepath = f"{param_dir}/generalized_accuracy.csv"
 
 data = data.sample(frac=1).to_numpy()  # Shuffle and convert to numpy array
 m, n = data.shape
 print(f"Data: {m} x {n} matrix")
 
-validation_set_size = m // 5 # 20% of dataset
-data_test = data[0:validation_set_size].T
+val_set_size = m // 5 # 20% of dataset
+data_test = data[0:val_set_size].T
 Y_test = data_test[0]
 X_test = data_test[1:n]
 X_test = X_test / 255.0
 
-data_train = data[validation_set_size:m].T
+data_train = data[val_set_size:m].T
 Y_train = data_train[0]
 X_train = data_train[1:n]
 X_train = X_train / 255.0
@@ -85,8 +91,8 @@ def forward_prop(W1, b1, W2, b2, W3, b3, X, training=True):
         A1 = apply_dropout(A1, DROPOUT_RATE)
     Z2 = W2.dot(A1) + b2
     A2 = ReLU(Z2)
-    if training:
-        A2 = apply_dropout(A2, DROPOUT_RATE)
+    #if training:
+        # A2 = apply_dropout(A2, DROPOUT_RATE)
     Z3 = W3.dot(A2) + b3
     A3 = softmax(Z3)
     return Z1, A1, Z2, A2, Z3, A3
@@ -126,8 +132,14 @@ def get_accuracy(predictions, Y): return np.sum(predictions == Y) / Y.size
 
 
 # Training
-def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience):
-    W1, b1, W2, b2, W3, b3 = init_params()
+def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience, resume=False):
+    if resume:
+        W1, b1, W2, b2, W3, b3, start_iteration = load_params("autosave_state", autosave_state=True)
+        iterations -= start_iteration
+    else:
+        W1, b1, W2, b2, W3, b3 = init_params()
+        start_iteration = 0
+
     alpha = initial_lr
     best_accuracy = 0
     patience_counter = 0
@@ -136,8 +148,8 @@ def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience):
     val_accuracies = []
     iterations_list = []
 
-    for i in range(iterations):
-        Z1, A1, Z2, A2, Z3, A3 = forward_prop(W1, b1, W2, b2, W3, b3, X, training=True)
+    for i in range(start_iteration, start_iteration + iterations):
+        Z1, A1, Z2, A2, Z3, A3 = forward_prop(W1, b1, W2, b2, W3, b3, X, training=ENABLE_DROPOUT)
         dW1, db1, dW2, db2, dW3, db3 = back_prop(Z1, A1, Z2, A2, W2, A3, W3, X, Y)
         W1, b1, W2, b2, W3, b3 = update_params(W1, b1, W2, b2, W3, b3, dW1, db1, dW2, db2, dW3, db3, alpha)
 
@@ -164,6 +176,10 @@ def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience):
             if patience_counter >= patience:
                 print(f"Early stopping at iteration {i} with best validation accuracy {best_accuracy:.4f}")
                 break
+
+            # Autosave the state every 200 iterations
+            if i % 200 == 0 and i != 0: save_params(W1, b1, W2, b2, W3, b3, "autosave_state", i, autosave_state=True)
+
 
     # Plot at the end
     plt.figure()
@@ -220,7 +236,7 @@ def plot_confusion_matrix(y_true, y_pred, class_labels):
 
     # Plot the confusion matrix
     f, ax = plt.subplots(figsize=(12, 10))
-    sns.heatmap(confusion_matrix, annot=True, linewidths=0.1, cmap="bone",
+    sns.heatmap(confusion_matrix, annot=True, linewidths=0.1, cmap="gray", # bone or gray
                 linecolor="white", fmt='.0f', ax=ax)
 
     # Add labels and titles
@@ -234,7 +250,7 @@ def plot_confusion_matrix(y_true, y_pred, class_labels):
 
 
 # Model Saving and Loading
-def save_params(W1, b1, W2, b2, W3, b3, filepath):
+def save_params(W1, b1, W2, b2, W3, b3, filepath, current_iteration=0,autosave_state=False):
     # Convert each parameter to DataFrame and save as CSV
     pd.DataFrame(W1).to_csv(f"{filepath}/W1.csv", index=False)
     pd.DataFrame(b1).to_csv(f"{filepath}/b1.csv", index=False)
@@ -242,9 +258,12 @@ def save_params(W1, b1, W2, b2, W3, b3, filepath):
     pd.DataFrame(b2).to_csv(f"{filepath}/b2.csv", index=False)
     pd.DataFrame(W3).to_csv(f"{filepath}/W3.csv", index=False)
     pd.DataFrame(b3).to_csv(f"{filepath}/b3.csv", index=False)
-    print(f"Weights and biases saved to {filepath}")
+    if autosave_state:
+        pd.DataFrame({'current_iteration': [current_iteration]}).to_csv(f"{filepath}/state.csv", index=False)
+        print(f"Training state saved to {filepath}")
+    else: print(f"Weights and biases saved to {filepath}")
 
-def load_params(filepath):
+def load_params(filepath, autosave_state=False):
     # Read each CSV file into a DataFrame and convert to numpy array
     W1 = pd.read_csv(f"{filepath}/W1.csv").values
     b1 = pd.read_csv(f"{filepath}/b1.csv").values
@@ -252,8 +271,13 @@ def load_params(filepath):
     b2 = pd.read_csv(f"{filepath}/b2.csv").values
     W3 = pd.read_csv(f"{filepath}/W3.csv").values
     b3 = pd.read_csv(f"{filepath}/b3.csv").values
-    print(f"Weights and biases loaded from {filepath}")
-    return W1, b1, W2, b2, W3, b3
+    if autosave_state:
+        current_iteration = int(pd.read_csv(f"{filepath}/state.csv")['current_iteration'][0])
+        print(f"Training state loaded from {filepath}")
+    else:
+        current_iteration = 0
+        print(f"Weights and biases loaded from {filepath}")
+    return W1, b1, W2, b2, W3, b3, current_iteration
 
 
 def read_generalized_accuracy(filepath):
@@ -269,32 +293,29 @@ def save_generalized_accuracy(filepath, accuracy):
     df.to_csv(filepath, index=False)
 
 
-# Paths
-if DATASET_IN_USE == "Handwritten Digits":
-    param_dir = "digit_params"
-elif DATASET_IN_USE == "Fashion":
-    param_dir = "fashion_params"
-
-generalized_accuracy_filepath = f"{param_dir}/generalized_accuracy.csv"
-
 # Main Execution
 if train_model:
-    patience = 20
-    W1, b1, W2, b2, W3, b3 = gradient_descent(X_train, Y_train, NUM_ITERATIONS, INITIAL_LEARNING_RATE, DECAY_RATE, patience)
+    patience = 50
+    if resume_autosave_state:
+        W1, b1, W2, b2, W3, b3 = gradient_descent(X_train, Y_train, NUM_ITERATIONS, INITIAL_LEARNING_RATE, DECAY_RATE,
+                                                  patience, resume=True)
+    else:
+        W1, b1, W2, b2, W3, b3 = gradient_descent(X_train, Y_train, NUM_ITERATIONS, INITIAL_LEARNING_RATE, DECAY_RATE,
+                                                  patience)
 
     test_predictions = make_predictions(X_test, W1, b1, W2, b2, W3, b3)
     generalized_accuracy = get_accuracy(test_predictions, Y_test)
     print(f"\nGeneralized Accuracy after training: {generalized_accuracy:.4f}")
     previous_generalized_accuracy = read_generalized_accuracy(generalized_accuracy_filepath)
 
-    if generalized_accuracy > previous_generalized_accuracy + 0.005:
+    if generalized_accuracy > previous_generalized_accuracy + 0.003:
         save_params(W1, b1, W2, b2, W3, b3, param_dir)
         save_generalized_accuracy(generalized_accuracy_filepath, generalized_accuracy)
         print(f"New parameters saved with generalized accuracy: {generalized_accuracy:.4f}")
     else:
         print(f"Parameters not saved. Improvement not sufficient: {generalized_accuracy - previous_generalized_accuracy:.4f}")
 else:
-    W1, b1, W2, b2, W3, b3 = load_params(param_dir)
+    W1, b1, W2, b2, W3, b3, _ = load_params(param_dir)
 
 
 
@@ -305,6 +326,6 @@ generalized_accuracy = get_accuracy(test_predictions, Y_test)
 print(f"\nGeneralized Accuracy: {generalized_accuracy:.4f}")
 
 for i in range(5):
-    evaluate_single_prediction(np.random.randint(0, 12000), X_test, Y_test, W1, b1, W2, b2, W3, b3)
+    evaluate_single_prediction(np.random.randint(0, val_set_size), X_test, Y_test, W1, b1, W2, b2, W3, b3)
 
 plot_confusion_matrix(Y_test, test_predictions, labels)
