@@ -1,4 +1,4 @@
-# Configurations
+# Configurations (mostly optimized through empirical testing)
 INPUT_SIZE = 784
 HIDDEN_LAYER_1_SIZE = 312
 HIDDEN_LAYER_2_SIZE = 55
@@ -12,6 +12,8 @@ DECAY_RATE = 0.0001
 ENABLE_DROPOUT = False
 
 # Labels and paths
+# This program has been modified to also work with mnist Fashion dataset,
+# so these following configs are in case I wish to switch between datasets and trained models
 labels = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 param_dir = "model_params"
 dataset_path = "data/train.csv"

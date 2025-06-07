@@ -2,7 +2,7 @@ from model_training import *
 from data_preprocessing import *
 from model_eval import *
 
-
+# Trains model using gradient descent with learning rate decay and early stopping
 def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience, X_test, Y_test, resume=False):
     params, start_iteration = initialize_training(resume, iterations)
     alpha = initial_lr
@@ -22,7 +22,7 @@ def gradient_descent(X, Y, iterations, initial_lr, decay_rate, patience, X_test,
     plot_convergence_curve(iterations_list, train_accuracies, val_accuracies)
     return params
 
-
+# Evals model after training by showing confusion matrix as well as 5 random individual predictions
 def test_model(X_test, Y_test, params, val_set_size):
     test_predictions = make_predictions(X_test, params)
     generalized_accuracy = get_accuracy(test_predictions, Y_test)
@@ -34,7 +34,7 @@ def test_model(X_test, Y_test, params, val_set_size):
 
     plot_confusion_matrix(Y_test, test_predictions, labels)
 
-
+# Loads params, trains model, evals model, and optionally saves model params
 def main():
     X_train, Y_train, X_test, Y_test, val_set_size = load_and_preprocess_data()
     _, m_train = X_train.shape

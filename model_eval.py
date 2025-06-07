@@ -12,12 +12,13 @@ def get_predicted_classes(A3): return np.argmax(A3, 0)
 def get_accuracy(predictions, Y): return np.sum(predictions == Y) / Y.size
 
 
-
+# Runs forward prop and returns predictions
 def make_predictions(X, params):
     cache = forward_prop(params, X, training=False)
     predictions = get_predicted_classes(cache["A3"])
     return predictions
 
+# Evals training and validation accuracy, applies learning rate decay
 def evaluate_model(
     i, params, cache, X, Y, X_test, Y_test, initial_lr, decay_rate,
     train_accuracies, val_accuracies, iterations_list
@@ -36,6 +37,7 @@ def evaluate_model(
 
     return alpha, accuracy, val_accuracy
 
+# Plots training and validation accuracy over iterations
 def plot_convergence_curve(iterations_list, train_accuracies, val_accuracies):
     plt.figure()
     plt.title("Convergence Curves of Training and Validation Accuracy")
@@ -46,6 +48,7 @@ def plot_convergence_curve(iterations_list, train_accuracies, val_accuracies):
     plt.legend()
     plt.show()
 
+# Displays single image and its predicted and actual label (number in this case)
 def plot_image(image_vector, prediction, label):
     plt.figure()
     plt.title("Predicted and Real Class of Image")
@@ -53,7 +56,7 @@ def plot_image(image_vector, prediction, label):
     plt.title(f"Prediction: {labels[prediction[0]]}, Label: {labels[label]}")
     plt.show()
 
-
+# Evals and visualizes single random prediction
 def evaluate_single_prediction(index, X_train, Y_train, params):
     current_image = X_train[:, index].reshape(INPUT_SIZE, 1)
     prediction = make_predictions(current_image, params)
@@ -61,7 +64,7 @@ def evaluate_single_prediction(index, X_train, Y_train, params):
     print(f"Prediction: {prediction[0]}, Label: {label_index}")
     plot_image(current_image, prediction, label_index)
 
-
+# Computes confusion matrix using true and predicted labels
 def compute_confusion_matrix(y_true, y_pred, num_classes):
     # Initialize the confusion matrix
     confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
@@ -72,7 +75,7 @@ def compute_confusion_matrix(y_true, y_pred, num_classes):
 
     return confusion_matrix
 
-
+# Plots confusion matrix
 def plot_confusion_matrix(y_true, y_pred, class_labels):
     num_classes = len(class_labels)
 
@@ -93,7 +96,7 @@ def plot_confusion_matrix(y_true, y_pred, class_labels):
     plt.yticks(np.arange(num_classes) + 0.5, class_labels, rotation=0)
     plt.show()
 
-
+# reads from CSV
 def read_generalized_accuracy(filepath):
     try:
         df = pd.read_csv(filepath)
@@ -101,7 +104,7 @@ def read_generalized_accuracy(filepath):
     except FileNotFoundError:
         return 0.0
 
-
+# saves to CSV
 def save_generalized_accuracy(filepath, accuracy):
     df = pd.DataFrame({'generalized_accuracy': [accuracy]})
     df.to_csv(filepath, index=False)
