@@ -26,11 +26,11 @@ It has been **modularized and generalized** to also work with the **Fashion MNIS
    ```
 2. **Install required libraries**
     ```bash
-    pip install numpy pandas matplotlib seaborn
+   pip install numpy pandas matplotlib seaborn
     ```
 3. **Run the program**
 ```bash
-  python main.py
+python main.py
 ```
 
 ### `config.py` Overview
@@ -84,8 +84,8 @@ In this mode, the model will:
 - Generate 5 random predictions on the test set
 - Display the predicted label alongside the true label for each image
 
-**Examples:
-**
+**Examples:**
+
 ![image](https://github.com/user-attachments/assets/d20eaa97-b421-4c86-8676-07445d0d4d45)
 
 ![image](https://github.com/user-attachments/assets/fbe02ab8-52c9-47f0-8cec-fbec7d67409f)
