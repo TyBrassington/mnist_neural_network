@@ -1,0 +1,79 @@
+# MNIST Handwritten Digit Classifier
+
+This project is a fully custom neural network built from scratch using NumPy to classify handwritten digits from the MNIST dataset. 
+It has been **modularized and generalized** to also work with the **Fashion MNIST** dataset with minimal modification — simply change the dataset input and class labels.
+
+> Note: While the neural network itself is implemented entirely with NumPy, additional libraries such as **Pandas** (for CSV parsing) and **Matplotlib/Seaborn** (for plotting and evaluation) are used for other supporting functionality like data visualization and generalized accuracy evaluation.
+
+- 3-layer neural network
+- Dropout regularization
+- Learning rate decay
+- Early stopping with autosave/resume
+- Accuracy convergence plots
+- Confusion matrix visualization
+- Easily switchable dataset backend
+
+- Automatically saves model state to autosave_state/ every 200 iterations.
+- Resumes from that state if resume_autosave_state = True.
+- Only saves final model if validation accuracy improves by >0.3%.
+
+### Setup Instructions
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your-username/mnist-numpy-classifier.git
+   cd mnist-numpy-classifier
+   ```
+2. **Install required libraries**
+    ```bash
+    pip install numpy pandas matplotlib seaborn
+    ```
+3. **Run the program**
+```bash
+  python main.py
+```
+
+### `config.py` Overview
+Modify global settings from config.py to control training behavior, architecture, and dataset handling.
+
+```python
+# Do not modify these unless you are training your own model
+INPUT_SIZE = 784
+HIDDEN_LAYER_1_SIZE = 312
+HIDDEN_LAYER_2_SIZE = 55
+OUTPUT_CLASSES = 10
+
+# Learning Parameters
+NUM_ITERATIONS = 50000
+INITIAL_LEARNING_RATE = 0.1
+DROPOUT_RATE = 0.25
+DECAY_RATE = 0.0001
+ENABLE_DROPOUT = False
+
+# Dataset and Save Paths
+# Modify these directories if you wish to switch datasets to MNIST fashion training datasets
+labels = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+dataset_path = "data/train.csv"
+param_dir = "model_params"
+generalized_accuracy_filepath = f"{param_dir}/generalized_accuracy.csv"
+
+# Execution Options
+train_model = True                 # True to train, False to only evaluate
+resume_autosave_state = False     # Resume from last autosaved checkpoint
+```
+
+To use Fashion-MNIST, simply:
+Replace `train.csv` with the Fashion-MNIST version.
+
+Replace the `labels` list:
+```python
+labels = ["T-shirt", "Trouser", "Pullover", "Dress", "Coat", 
+          "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"]
+```
+
+---
+### MNIST Dataset Links
+
+**Handwritten Digits:** https://www.kaggle.com/datasets/hojjatk/mnist-dataset
+**Fashion:** https://www.kaggle.com/datasets/zalando-research/fashionmnist
+
