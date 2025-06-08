@@ -71,7 +71,45 @@ labels = ["T-shirt", "Trouser", "Pullover", "Dress", "Coat",
           "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"]
 ```
 
+### Evaluation Mode
+To run the program in evaluation mode, simply set the following flag in `config.py`:
+
+```python
+train_model = False
+```
+
+In this mode, the model will:
+
+- Load previously saved weights from model_params/
+- Generate 5 random predictions on the test set
+- Display the predicted label alongside the true label for each image
+
+**Examples:
+**
+![image](https://github.com/user-attachments/assets/d20eaa97-b421-4c86-8676-07445d0d4d45)
+
+![image](https://github.com/user-attachments/assets/fbe02ab8-52c9-47f0-8cec-fbec7d67409f)
+
+![image](https://github.com/user-attachments/assets/d16bee05-0abc-488e-ba1c-58fd485ff121)
+
+
+A **confusion matrix** will also be plotted, where:
+- The x-axis represents predicted labels
+- The y-axis represents true (actual) labels
+- Correct predictions appear along the diagonal from top-left to bottom-right
+- Off-diagonal entries indicate misclassifications
+
+**Example:**
+
+![image](https://github.com/user-attachments/assets/a4dc9840-9820-49ad-852c-7c81224292f8)
+
+
+
+
+
+
 ---
+
 ### MNIST Dataset Links
 
 **Handwritten Digits:** https://www.kaggle.com/datasets/hojjatk/mnist-dataset
